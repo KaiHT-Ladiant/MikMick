@@ -1,21 +1,21 @@
-# Python
+# Build output
+build/
+build-*/
+cmake-build-*/
+.build-tmp/
+compile_commands.json
+CMakeLists.txt.user
+
+# Python (reference implementation / helper scripts)
 __pycache__/
 *.py[cod]
-*.egg-info/
-.eggs/
-build/
-dist/
 .venv/
 venv/
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-.coverage
-htmlcov/
 
 # Editors / OS
 .idea/
 .vscode/
+.cache/
 *.swp
 .DS_Store
 Thumbs.db

@@ -1,0 +1,14 @@
+#pragma once
+
+#define MIKMICK_VERSION "@PROJECT_VERSION@"
+
+namespace mm {
+
+inline constexpr const char *kVersion = "@PROJECT_VERSION@";
+inline constexpr const char *kAppName = "MikMick";
+inline constexpr const char *kAppNameKo = "믹믹";
+inline constexpr const char *kAppId = "io.github.kaiht_ladiant.MikMick";
+inline constexpr const char *kRepoUrl = "https://github.com/KaiHT-Ladiant/MikMick";
+inline constexpr const char *kReleasesApi = "https://api.github.com/repos/KaiHT-Ladiant/MikMick/releases/latest";
+
+} // namespace mm
