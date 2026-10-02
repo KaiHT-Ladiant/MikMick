@@ -51,8 +51,13 @@ void drag(CanvasView *view, const QPoint &a, const QPoint &b)
 {
     QWidget *vp = view->viewport();
     QTest::mousePress(vp, Qt::LeftButton, Qt::NoModifier, a);
-    for (int i = 1; i <= 5; ++i)
-        QTest::mouseMove(vp, a + (b - a) * (i / 5.0));
+    // QTest::mouseMove only moves the cursor on the offscreen platform before Qt 6.3.
+    for (int i = 1; i <= 5; ++i) {
+        const QPointF pos = a + (b - a) * (i / 5.0);
+        QMouseEvent move(QEvent::MouseMove, pos, vp->mapToGlobal(pos), Qt::NoButton, Qt::LeftButton,
+                         Qt::NoModifier);
+        QApplication::sendEvent(vp, &move);
+    }
     QTest::mouseRelease(vp, Qt::LeftButton, Qt::NoModifier, b);
 }
 
