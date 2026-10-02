@@ -12,8 +12,8 @@
 <p align="center">
   <a href="https://github.com/KaiHT-Ladiant/MikMick/actions/workflows/ci.yml"><img src="https://github.com/KaiHT-Ladiant/MikMick/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
-  <img src="https://img.shields.io/badge/python-3.10%2B-3776AB.svg" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/Qt-PySide6-41CD52.svg" alt="PySide6">
+  <img src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg" alt="C++17">
+  <img src="https://img.shields.io/badge/Qt-6-41CD52.svg" alt="Qt 6">
   <img src="https://img.shields.io/badge/platform-Linux-FCC624.svg" alt="Linux">
 </p>
 
@@ -22,6 +22,7 @@
 Windows 에서 오랫동안 사랑받아 온 [픽픽(PicPick)](https://picpick.app/ko/)은 공식적으로 Mac/Linux 버전 계획이 없습니다.
 **믹믹(MikMick)** 은 픽픽의 사용 경험(리본 스타일 에디터, 다양한 캡처 모드, 그래픽 도구 모음, 옵션 구성)을
 리눅스 데스크톱에서 그대로 누릴 수 있도록 처음부터 새로 만든 **무료 오픈소스** 프로그램입니다.
+C++17 과 Qt 6 로 작성되어 가볍고 빠르게 실행되며, 별도의 런타임 없이 실행 파일 하나로 동작합니다.
 
 > 믹믹은 PicPick 및 NGWIN 과 제휴 관계가 없는 독립 프로젝트이며, PicPick 의 코드나 리소스를 사용하지 않습니다.
 
@@ -33,7 +34,7 @@ Windows 에서 오랫동안 사랑받아 온 [픽픽(PicPick)](https://picpick.a
 | 모드 | 설명 |
 | --- | --- |
 | 전체화면 캡처하기 | 다중 모니터를 포함한 전체 화면 |
-| 활성화된 윈도우 캡처 | 현재 포커스된 창 (X11: `xdotool`) |
+| 활성화된 윈도우 캡처 | 현재 포커스된 창 (창 테두리 포함) |
 | 윈도우 컨트롤 캡처 | 마우스로 가리킨 창을 하이라이트하여 선택 |
 | 자동 스크롤 캡처 | 스크롤하며 여러 장을 찍어 겹치는 부분을 찾아 자동으로 이어 붙임 |
 | 영역을 지정하여 캡처 | 드래그로 영역 지정, 화면 확대창(돋보기)과 픽셀 좌표·색상 표시 |
@@ -67,7 +68,8 @@ Windows 에서 오랫동안 사랑받아 온 [픽픽(PicPick)](https://picpick.a
 
 ### 기타
 - 알림 영역(트레이) 아이콘 메뉴, 단일 인스턴스, 로그인 시 자동 실행
-- 전역 단축키 (X11, 기본값은 픽픽과 동일: `PrintScreen`, `Alt+PrintScreen`, `Shift+PrintScreen` …)
+- 전역 단축키 (기본값은 픽픽과 동일: `PrintScreen`, `Alt+PrintScreen`, `Shift+PrintScreen` …)
+  - X11: XCB 로 직접 등록, Wayland: xdg-desktop-portal GlobalShortcuts (지원하는 데스크톱에서)
 - 업데이트 확인 (GitHub Releases)
 
 ## 스크린샷
@@ -80,35 +82,39 @@ Windows 에서 오랫동안 사랑받아 온 [픽픽(PicPick)](https://picpick.a
 | --- | --- |
 | ![영역 캡처](docs/screenshots/capture_region.png) | ![옵션 단축키](docs/screenshots/options_hotkeys.png) |
 
-## 설치
+## 설치 (소스에서 빌드)
 
-### 1. 시스템 패키지
+### 1. 빌드 도구와 라이브러리
 
 ```bash
 # Debian / Ubuntu / Kali
-sudo apt install python3 python3-venv pipx libxcb-cursor0 xdotool x11-utils
+sudo apt install cmake ninja-build g++ qt6-base-dev \
+  libxcb1-dev libxcb-keysyms1-dev libxcb-xtest0-dev libxcb-xfixes0-dev
 
 # Fedora
-sudo dnf install python3 pipx xcb-util-cursor xdotool xprop xwininfo
+sudo dnf install cmake ninja-build gcc-c++ qt6-qtbase-devel libxcb-devel xcb-util-keysyms-devel
 
 # Arch
-sudo pacman -S python python-pipx xcb-util-cursor xdotool xorg-xprop xorg-xwininfo
+sudo pacman -S cmake ninja gcc qt6-base libxcb xcb-util-keysyms
 ```
 
-> `xdotool`, `xprop`, `xwininfo` 는 X11 에서 활성 창 캡처·창 선택·자동 스크롤 캡처에 사용됩니다.
+> Qt 6.2 이상이 필요합니다. XCB 개발 패키지가 없으면 X11 전용 기능(창 선택, 자동 스크롤, X11 전역 단축키) 없이 빌드됩니다.
+> FTP 전송에는 `curl`, Wayland 환경의 화면 획득 대체 수단으로 `grim` / `gnome-screenshot` / `spectacle` 중 하나가 쓰일 수 있습니다.
 
-### 2. 믹믹 설치
+### 2. 빌드 & 설치
 
 ```bash
 git clone https://github.com/KaiHT-Ladiant/MikMick.git
 cd MikMick
-./scripts/install.sh          # pipx(없으면 가상환경)로 설치 + 앱 메뉴/아이콘 등록
+./scripts/install.sh          # 빌드 후 ~/.local 에 설치 + 앱 메뉴/아이콘 등록
 ```
 
 또는 직접:
 
 ```bash
-pipx install "mikmick[full] @ git+https://github.com/KaiHT-Ladiant/MikMick.git"
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+sudo cmake --install build    # /usr/local
 ```
 
 제거: `./scripts/install.sh --uninstall`
@@ -136,9 +142,11 @@ mikmick --options                # 옵션
 | --- | :---: | :---: |
 | 전체화면 / 영역 / 고정 영역 / 자유형 캡처 | ✅ | ✅ (xdg-desktop-portal 또는 `grim`, `gnome-screenshot`, `spectacle`) |
 | 활성 창 / 창 선택 캡처 | ✅ | ⚠️ 영역 지정으로 대체 |
-| 자동 스크롤 캡처 | ✅ | ❌ |
+| 자동 스크롤 캡처 | ✅ (XTest) | ❌ |
 | 실시간 돋보기 | ✅ | ⚠️ 정지 화면 기준 |
-| 전역 단축키 | ✅ (`pynput`) | ⚠️ 데스크톱 설정에서 등록 |
+| 전역 단축키 | ✅ (XCB) | ⚠️ GlobalShortcuts 포털 지원 시 자동, 아니면 데스크톱 설정에서 등록 |
+
+X11 에서 `Ctrl+Alt+F1`~`F12` 는 가상 콘솔 전환에 쓰이므로 전역 단축키로 사용할 수 없습니다.
 
 **Wayland(GNOME/KDE) 단축키 등록 예시**: 설정 → 키보드 → 사용자 지정 단축키에서
 명령 `mikmick --capture region`, 단축키 `Shift+Print` 처럼 등록하세요.
@@ -151,32 +159,35 @@ GNOME 은 기본적으로 `Print` 키를 자체 스크린샷에 사용하므로 
 ## 개발
 
 ```bash
-python3 -m venv .venv && . .venv/bin/activate
-pip install -e ".[dev,full]"
-QT_QPA_PLATFORM=offscreen pytest -q
-ruff check .
-python -m mikmick
+cmake -S . -B build -G Ninja
+cmake --build build
+ctest --test-dir build --output-on-failure   # QT_QPA_PLATFORM=offscreen 으로 실행됨
+./build/mikmick
 ```
 
-README 스크린샷 다시 만들기: `QT_QPA_PLATFORM=offscreen python scripts/make_screenshots.py`
+README 스크린샷 다시 만들기: `./build/tests/mikmick-screenshots docs/screenshots`
+
+모듈 하나만 빠르게 컴파일해 보려면 `-DMIKMICK_ONLY_MODULE=editor` 처럼 지정합니다.
 
 ```
-mikmick/
-├── app.py            # 진입점, 트레이, 단일 인스턴스(IPC), 캡처 결과 처리
-├── capture/          # 화면 획득 백엔드(X11/Wayland), 선택 오버레이, 스크롤 캡처
-├── editor/           # 리본 에디터, 백스테이지, 캔버스·개체, 효과
-├── tools/            # 색상 추출/팔레트, 돋보기, 눈금자, 십자선, 각도기, 프리젠테이션
-├── options.py        # 옵션 대화상자 (8개 페이지)
-├── outputs.py        # 저장 / 클립보드 / FTP / 외부 프로그램
-└── icons.py          # QPainter 벡터 아이콘
+src/
+├── app/       # 진입점(CLI), 트레이, 단일 인스턴스(IPC), 캡처 결과 처리
+├── core/      # 설정, 파일 이름 패턴, 저장/클립보드/FTP/외부 프로그램, 자동 실행·업데이트
+├── capture/   # 화면 획득(X11/Wayland 포털), XCB 창 정보, 선택 오버레이, 스크롤 캡처
+├── editor/    # 리본 에디터, 백스테이지, 캔버스·개체, 효과
+├── tools/     # 색상 추출/팔레트, 돋보기, 눈금자, 십자선, 각도기, 프리젠테이션
+├── options/   # 옵션 대화상자(8개 페이지), 전역 단축키(XCB / GlobalShortcuts 포털)
+└── ui/        # QPainter 벡터 아이콘
 ```
+
+> 0.1.0 은 Python(PySide6)으로 작성되었으며 [`python-v0.1.0`](https://github.com/KaiHT-Ladiant/MikMick/tree/python-v0.1.0) 태그에 보존되어 있습니다.
 
 ## 로드맵
 
 - [ ] 화면 녹화 (PipeWire / ffmpeg)
 - [ ] 클라우드 업로드 (Google 드라이브, 드롭박스 등)
 - [ ] 개체 크기 조절 핸들, 레이어 순서 변경
-- [ ] Flatpak / AppImage / .deb 패키지
+- [ ] Flatpak / AppImage / .deb 패키지 및 릴리스 바이너리
 - [ ] 다국어(영어) UI
 
 ## 만든 사람

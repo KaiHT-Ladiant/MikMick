@@ -27,6 +27,12 @@
   </screenshots>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.2.0" date="2026-10-02">
+      <description>
+        <p>Rewritten in C++17 / Qt6: native XCB window picking, global hotkeys and auto-scroll capture,
+        and xdg-desktop-portal Screenshot / GlobalShortcuts support on Wayland.</p>
+      </description>
+    </release>
     <release version="0.1.0" date="2026-10-02"/>
   </releases>
 </component>
