@@ -1,0 +1,30 @@
+# Maintainer: Kai_HT <157885033+KaiHT-Ladiant@users.noreply.github.com>
+pkgname=mikmick
+pkgver=0.2.0
+pkgrel=1
+pkgdesc="All-in-one screen capture, image editor and graphic tools (PicPick-like)"
+arch=('x86_64' 'aarch64')
+url="https://github.com/KaiHT-Ladiant/MikMick"
+license=('MIT')
+depends=('qt6-base' 'libxcb' 'xcb-util-keysyms' 'hicolor-icon-theme')
+makedepends=('cmake' 'ninja')
+optdepends=('qt6-wayland: native Wayland windows'
+            'xdg-desktop-portal: screenshots and global shortcuts on Wayland'
+            'xdg-utils: open images / send e-mail'
+            'curl: FTP upload'
+            'grim: Wayland screenshot fallback')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+    cmake -S "MikMick-$pkgver" -B build -G Ninja \
+        -DCMAKE_BUILD_TYPE=None \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DMIKMICK_BUILD_TESTS=OFF
+    cmake --build build
+}
+
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    install -Dm644 "MikMick-$pkgver/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

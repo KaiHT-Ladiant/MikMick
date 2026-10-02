@@ -117,3 +117,41 @@ if(MIKMICK_BUILD_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.t
     enable_testing()
     add_subdirectory(tests)
 endif()
+
+# Binary packages: `cpack -G DEB` / `cpack -G RPM` in a build configured with
+# CMAKE_INSTALL_PREFIX=/usr. Library dependencies are computed from the binary
+# (dpkg-shlibdeps / rpm autoreq) so the packages follow the build distro's Qt.
+set(CPACK_PACKAGE_NAME mikmick)
+set(CPACK_PACKAGE_VENDOR "Kai_HT")
+set(CPACK_PACKAGE_CONTACT "Kai_HT <157885033+KaiHT-Ladiant@users.noreply.github.com>")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION}")
+set(CPACK_PACKAGE_DESCRIPTION
+    "MikMick is a PicPick-like screen capture tool for Linux with a ribbon style image editor, color picker, color palette, magnifier, ruler, crosshair, protractor and whiteboard.")
+set(CPACK_PACKAGE_HOMEPAGE_URL "${PROJECT_HOMEPAGE_URL}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY MikMick)
+set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
+set(CPACK_STRIP_FILES ON)
+set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+set(CPACK_DEBIAN_PACKAGE_SECTION graphics)
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "qt6-qpa-plugins")
+set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "qt6-wayland, xdg-desktop-portal, xdg-utils, curl")
+set(CPACK_DEBIAN_PACKAGE_SUGGESTS "grim")
+
+set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
+set(CPACK_RPM_PACKAGE_LICENSE MIT)
+set(CPACK_RPM_PACKAGE_GROUP "Applications/Multimedia")
+set(CPACK_RPM_PACKAGE_URL "${PROJECT_HOMEPAGE_URL}")
+set(CPACK_RPM_PACKAGE_SUGGESTS "xdg-desktop-portal, curl, grim")
+# Directories owned by filesystem / hicolor-icon-theme must not be claimed by the package.
+set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION
+    /usr/share/applications
+    /usr/share/metainfo
+    /usr/share/icons
+    /usr/share/icons/hicolor
+    /usr/share/icons/hicolor/scalable
+    /usr/share/icons/hicolor/scalable/apps)
+
+include(CPack)

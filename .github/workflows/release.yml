@@ -1,0 +1,243 @@
+name: Release
+
+# Publishing a GitHub release (tag vX.Y.Z) builds the Linux packages, installs each of them
+# on several distributions and attaches them to that release. Run it manually to only
+# build and test the packages.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+
+jobs:
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: version
+        name: Read version
+        env:
+          EVENT: ${{ github.event_name }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version=$(sed -n '/^project(/,/)/s/^ *VERSION \([0-9.]*\).*/\1/p' CMakeLists.txt)
+          pkgver=$(sed -n 's/^pkgver=//p' packaging/arch/PKGBUILD)
+          echo "CMake: $version, PKGBUILD: $pkgver, tag: ${TAG:-none}"
+          [ -n "$version" ] && [ "$version" = "$pkgver" ] || { echo "::error::PKGBUILD pkgver must match the CMake version"; exit 1; }
+          if [ "$EVENT" = release ] && [ "$TAG" != "v$version" ]; then
+            echo "::error::Release tag $TAG does not match CMake version $version"; exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: install-test-script
+          path: packaging/ci/install-test.sh
+
+  deb:
+    name: Build .deb (Ubuntu 22.04, Qt 6.2)
+    needs: version
+    runs-on: ubuntu-24.04
+    container: ubuntu:22.04
+    steps:
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates git cmake ninja-build g++ pkg-config \
+            dpkg-dev file qt6-base-dev libgl-dev \
+            libxcb1-dev libxcb-keysyms1-dev libxcb-xtest0-dev libxcb-xfixes0-dev
+
+      - uses: actions/checkout@v5
+
+      - name: Build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DMIKMICK_BUILD_TESTS=OFF
+          cmake --build build --parallel
+          cd build && cpack -G DEB
+
+      - name: Inspect
+        run: dpkg-deb --info build/*.deb && dpkg-deb --contents build/*.deb
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pkg-deb
+          path: build/*.deb
+          if-no-files-found: error
+
+  rpm:
+    name: Build .rpm (Fedora 43)
+    needs: version
+    runs-on: ubuntu-24.04
+    container: fedora:43
+    steps:
+      - name: Install build dependencies
+        run: |
+          dnf install -y git cmake ninja-build gcc-c++ rpm-build qt6-qtbase-devel libglvnd-devel \
+            libxcb-devel xcb-util-keysyms-devel
+
+      - uses: actions/checkout@v5
+
+      - name: Build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DMIKMICK_BUILD_TESTS=OFF
+          cmake --build build --parallel
+          cd build && cpack -G RPM
+
+      - name: Inspect
+        run: rpm -qip build/*.rpm && rpm -qlp build/*.rpm && rpm -qRp build/*.rpm
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pkg-rpm
+          path: build/*.rpm
+          if-no-files-found: error
+
+  appimage:
+    name: Build AppImage (Ubuntu 22.04, Qt 6.2 bundled)
+    needs: version
+    runs-on: ubuntu-24.04
+    container: ubuntu:22.04
+    env:
+      APPIMAGE_EXTRACT_AND_RUN: 1
+      QMAKE: /usr/lib/qt6/bin/qmake
+      LDAI_OUTPUT: MikMick-${{ needs.version.outputs.version }}-x86_64.AppImage
+    steps:
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates git wget file cmake ninja-build g++ pkg-config \
+            qt6-base-dev qt6-base-dev-tools qt6-qpa-plugins qt6-image-formats-plugins libgl-dev libopengl0 \
+            libxcb1-dev libxcb-keysyms1-dev libxcb-xtest0-dev libxcb-xfixes0-dev
+
+      - uses: actions/checkout@v5
+
+      - name: Build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DMIKMICK_BUILD_TESTS=OFF
+          cmake --build build --parallel
+          DESTDIR="$PWD/AppDir" cmake --install build
+
+      # libOpenGL.so.0 (GLVND) is on the AppImage exclude list but, unlike libGL/libEGL, is
+      # missing on many desktops without Qt 6 installed, so it is bundled explicitly.
+      - name: Bundle
+        run: |
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy-*.AppImage
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt --output appimage \
+            --library /usr/lib/x86_64-linux-gnu/libOpenGL.so.0 \
+            --desktop-file AppDir/usr/share/applications/io.github.kaiht_ladiant.MikMick.desktop \
+            --icon-file AppDir/usr/share/icons/hicolor/scalable/apps/mikmick.svg
+          ls AppDir/usr/lib
+          ls -l "$LDAI_OUTPUT"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pkg-appimage
+          path: ${{ env.LDAI_OUTPUT }}
+          if-no-files-found: error
+
+  arch:
+    name: Build Arch package
+    needs: version
+    runs-on: ubuntu-24.04
+    container: archlinux:latest
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - name: Install build dependencies
+        run: pacman -Syu --noconfirm --needed base-devel git cmake ninja qt6-base libxcb xcb-util-keysyms hicolor-icon-theme
+
+      - uses: actions/checkout@v5
+
+      - name: makepkg
+        run: |
+          git config --global --add safe.directory "$PWD"
+          mkdir -p /tmp/pkg
+          cp packaging/arch/PKGBUILD /tmp/pkg/
+          git archive --prefix="MikMick-$VERSION/" -o "/tmp/pkg/mikmick-$VERSION.tar.gz" HEAD
+          useradd -m builder
+          chown -R builder /tmp/pkg
+          cd /tmp/pkg && su builder -c 'makepkg --noconfirm'
+          rm -f /tmp/pkg/*-debug-*.pkg.tar.zst
+          ls -l /tmp/pkg/*.pkg.tar.zst
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pkg-arch
+          path: /tmp/pkg/*.pkg.tar.zst
+          if-no-files-found: error
+
+  install-test:
+    name: Install ${{ matrix.kind }} on ${{ matrix.image }}
+    needs: [deb, rpm, appimage, arch]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { kind: deb, image: "ubuntu:22.04" }
+          - { kind: deb, image: "ubuntu:24.04" }
+          - { kind: deb, image: "debian:12" }
+          - { kind: deb, image: "debian:13" }
+          - { kind: rpm, image: "fedora:43" }
+          - { kind: rpm, image: "fedora:latest" }
+          - { kind: rpm, image: "opensuse/tumbleweed" }
+          - { kind: arch, image: "archlinux:latest" }
+          - { kind: appimage, image: "ubuntu:22.04" }
+          - { kind: appimage, image: "debian:13" }
+          - { kind: appimage, image: "fedora:latest" }
+          - { kind: appimage, image: "opensuse/tumbleweed" }
+          - { kind: appimage, image: "archlinux:latest" }
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: install-test-script
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: pkg-${{ matrix.kind }}
+          path: pkg
+
+      - run: sh install-test.sh ${{ matrix.kind }} pkg
+
+  publish:
+    name: Attach to release
+    needs: [version, install-test]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: pkg-*
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        run: |
+          cp packaging/arch/PKGBUILD dist/
+          cd dist && sha256sum -- * > SHA256SUMS && cat SHA256SUMS
+
+      - name: Upload release assets
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" dist/* --clobber -R "$GITHUB_REPOSITORY"
+
+      - uses: actions/upload-artifact@v7
+        if: github.event_name != 'release'
+        with:
+          name: release-assets
+          path: dist/*

@@ -52,3 +52,29 @@ jobs:
 
       - name: Smoke test
         run: ./build/mikmick --version
+
+  oldest-qt:
+    name: gcc (Ubuntu 22.04, Qt 6.2)
+    runs-on: ubuntu-24.04
+    container: ubuntu:22.04
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates git cmake ninja-build g++ pkg-config \
+            qt6-base-dev qt6-qpa-plugins libgl-dev \
+            libxcb1-dev libxcb-keysyms1-dev libxcb-xtest0-dev libxcb-xfixes0-dev fonts-noto-cjk
+
+      - uses: actions/checkout@v5
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure

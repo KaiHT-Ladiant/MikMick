@@ -11,6 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/KaiHT-Ladiant/MikMick/actions/workflows/ci.yml"><img src="https://github.com/KaiHT-Ladiant/MikMick/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/KaiHT-Ladiant/MikMick/releases/latest"><img src="https://img.shields.io/github/v/release/KaiHT-Ladiant/MikMick" alt="Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg" alt="C++17">
   <img src="https://img.shields.io/badge/Qt-6-41CD52.svg" alt="Qt 6">
@@ -81,6 +82,30 @@ C++17 과 Qt 6 로 작성되어 가볍고 빠르게 실행되며, 별도의 런�
 | 영역 지정 캡처 | 옵션 - 단축키 |
 | --- | --- |
 | ![영역 캡처](docs/screenshots/capture_region.png) | ![옵션 단축키](docs/screenshots/options_hotkeys.png) |
+
+## 다운로드
+
+[Releases](https://github.com/KaiHT-Ladiant/MikMick/releases/latest) 페이지에서 배포판에 맞는 패키지를 받으세요.
+모든 패키지는 릴리스마다 CI 에서 아래 배포판 컨테이너에 실제로 설치해 실행까지 확인합니다.
+
+| 패키지 | 대상 | 설치 테스트를 통과한 배포판 |
+| --- | --- | --- |
+| `mikmick_<버전>_amd64.deb` | Debian / Ubuntu 계열 (Linux Mint, Pop!_OS, Kali …) | Ubuntu 22.04 · 24.04, Debian 12 · 13 |
+| `mikmick-<버전>-1.x86_64.rpm` | Fedora / openSUSE 계열 | Fedora 43 · 최신, openSUSE Tumbleweed |
+| `mikmick-<버전>-1-x86_64.pkg.tar.zst` | Arch 계열 (Manjaro, EndeavourOS …) | Arch Linux |
+| `MikMick-<버전>-x86_64.AppImage` | 설치 없이 실행 (Qt 포함, glibc 2.35 이상) | Ubuntu 22.04, Debian 13, Fedora 최신, openSUSE Tumbleweed, Arch Linux |
+
+```bash
+sudo apt install ./mikmick_*_amd64.deb                         # Debian / Ubuntu
+sudo dnf install ./mikmick-*.x86_64.rpm                        # Fedora
+sudo zypper install --allow-unsigned-rpm ./mikmick-*.x86_64.rpm  # openSUSE
+sudo pacman -U ./mikmick-*-x86_64.pkg.tar.zst                  # Arch
+chmod +x MikMick-*-x86_64.AppImage && ./MikMick-*-x86_64.AppImage
+```
+
+> deb/rpm/Arch 패키지는 배포판의 Qt 6 를 사용하므로 가볍고, AppImage 는 Qt 를 내장해 배포판과 무관하게 실행됩니다.
+> AppImage 는 Wayland 세션에서 XWayland 로 동작하며, 캡처와 전역 단축키는 deb/rpm 과 동일하게 xdg-desktop-portal 을 사용합니다.
+> Arch 사용자는 릴리스에 첨부된 `PKGBUILD` 로 직접 빌드할 수도 있습니다. 파일 무결성은 `SHA256SUMS` 로 확인하세요.
 
 ## 설치 (소스에서 빌드)
 
