@@ -1,0 +1,37 @@
+[Desktop Entry]
+Type=Application
+Name=MikMick
+Name[ko]=믹믹
+GenericName=Screen Capture
+GenericName[ko]=화면 캡처
+Comment=All-in-one screen capture, image editor and design tools
+Comment[ko]=화면 캡처, 이미지 편집, 색상 추출 등 올인원 그래픽 도구
+Exec=mikmick %F
+Icon=mikmick
+Terminal=false
+Categories=Graphics;RasterGraphics;Utility;Qt;
+Keywords=screenshot;capture;print screen;editor;color picker;ruler;캡처;스크린샷;
+MimeType=image/png;image/jpeg;image/bmp;image/gif;image/webp;image/tiff;
+StartupNotify=true
+StartupWMClass=mikmick
+Actions=CaptureRegion;CaptureFullscreen;CaptureWindow;ColorPicker;
+
+[Desktop Action CaptureRegion]
+Name=Capture Region
+Name[ko]=영역을 지정하여 캡처
+Exec=mikmick --capture region
+
+[Desktop Action CaptureFullscreen]
+Name=Capture Full Screen
+Name[ko]=전체화면 캡처하기
+Exec=mikmick --capture fullscreen
+
+[Desktop Action CaptureWindow]
+Name=Capture Active Window
+Name[ko]=활성화된 윈도우 캡처
+Exec=mikmick --capture active_window
+
+[Desktop Action ColorPicker]
+Name=Color Picker
+Name[ko]=색상 추출 도구
+Exec=mikmick --tool color_picker

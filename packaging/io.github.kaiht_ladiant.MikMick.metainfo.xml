@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.kaiht_ladiant.MikMick</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>MikMick</name>
+  <name xml:lang="ko">믹믹</name>
+  <summary>All-in-one screen capture, image editor and design tools</summary>
+  <summary xml:lang="ko">화면 캡처, 이미지 편집, 디자인 도구를 한 곳에서</summary>
+  <description>
+    <p>
+      MikMick is a free and open source screen capture tool for Linux with a ribbon style image
+      editor and handy design tools such as a color picker, color palette, magnifier, ruler,
+      crosshair, protractor and an on-screen presentation (whiteboard) tool.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.kaiht_ladiant.MikMick.desktop</launchable>
+  <url type="homepage">https://github.com/KaiHT-Ladiant/MikMick</url>
+  <url type="bugtracker">https://github.com/KaiHT-Ladiant/MikMick/issues</url>
+  <developer id="io.github.kaiht_ladiant">
+    <name>Kai_HT</name>
+  </developer>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/KaiHT-Ladiant/MikMick/main/docs/screenshots/editor.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.0" date="2026-10-02"/>
+  </releases>
+</component>
