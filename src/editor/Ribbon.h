@@ -11,6 +11,7 @@
 class QAction;
 class QHBoxLayout;
 class QMenu;
+class QScrollArea;
 class QStackedWidget;
 class QTabBar;
 
@@ -29,8 +30,13 @@ public:
     RibbonButton(const QString &text, const QIcon &icon, bool large = true, QMenu *menu = nullptr,
                  bool checkable = false);
 
+    QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
+
 private:
     void init(const QString &text, const QIcon &icon, bool large, QMenu *menu, bool checkable);
+
+    int m_minWidth = 0;
 };
 
 class RibbonGroup : public QWidget
@@ -134,6 +140,8 @@ public:
     QHBoxLayout *extraLayout() const { return m_extra; }
     QTabBar *tabBar() const { return m_tabs; }
     QStackedWidget *stack() const { return m_stack; }
+    // Width needed to show the widest page without clipping.
+    int preferredWidth() const;
     bool isCollapsed() const { return m_collapsed; }
     void toggleCollapsed();
     // Enables/disables every page button except those in keep.
@@ -149,6 +157,7 @@ private:
     QHBoxLayout *m_extra;
     QTabBar *m_tabs;
     QWidget *m_body;
+    QScrollArea *m_scroll;
     QStackedWidget *m_stack;
     QToolButton *m_collapseBtn;
     int m_lastIndex = 1;

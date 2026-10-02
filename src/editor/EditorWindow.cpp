@@ -103,6 +103,10 @@ EditorWindow::EditorWindow(AppContext &ctx, QWidget *parent)
     m_ribbon = new Ribbon();
     buildRibbon();
     lay->addWidget(m_ribbon);
+    int startWidth = std::max(1100, m_ribbon->preferredWidth() + 8);
+    if (const QScreen *s = screen())
+        startWidth = std::min(startWidth, s->availableGeometry().width() - 40);
+    resize(startWidth, height());
     m_tabs = new QTabWidget();
     m_tabs->setDocumentMode(true);
     m_tabs->setTabsClosable(true);

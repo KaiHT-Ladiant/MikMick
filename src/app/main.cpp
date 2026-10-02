@@ -3,6 +3,7 @@
 #include "core/Catalog.h"
 #include "core/Config.h"
 #include "ui/Icons.h"
+#include "ui/Theme.h"
 
 #include <QApplication>
 #include <QCommandLineParser>
@@ -60,6 +61,7 @@ int main(int argc, char *argv[])
     QApplication::setWindowIcon(QIcon::hasThemeIcon(QStringLiteral("mikmick"))
                                     ? QIcon::fromTheme(QStringLiteral("mikmick"))
                                     : mm::icons::icon(QStringLiteral("logo")));
+    mm::theme::applyLightPalette();
 
     QCommandLineParser parser;
     parser.setApplicationDescription(QStringLiteral("믹믹(MikMick) - 리눅스용 화면 캡처 & 이미지 편집 도구"));

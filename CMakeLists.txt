@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(MikMick
-    VERSION 0.2.0
+    VERSION 0.2.1
     DESCRIPTION "All-in-one screen capture, image editor and graphic tools for Linux"
     HOMEPAGE_URL "https://github.com/KaiHT-Ladiant/MikMick"
     LANGUAGES CXX)

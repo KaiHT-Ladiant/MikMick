@@ -27,7 +27,6 @@
 #include <QSpinBox>
 #include <QStackedWidget>
 #include <QStandardPaths>
-#include <QStyle>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -175,8 +174,6 @@ OptionsDialog::OptionsDialog(Config &config, QWidget *parent)
 {
     setWindowTitle(QStringLiteral("옵션"));
     setWindowIcon(mm::icons::icon(QStringLiteral("options")));
-    // The page bodies are painted white like PicPick, so dark desktop palettes would give light-on-white text.
-    setPalette(style()->standardPalette());
     setStyleSheet(QString::fromUtf8(kOptionsQss));
     resize(640, 594);
 

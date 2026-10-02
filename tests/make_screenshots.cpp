@@ -9,6 +9,7 @@
 #include "editor/Items.h"
 #include "options/OptionsDialog.h"
 #include "tools/ColorTools.h"
+#include "ui/Theme.h"
 
 #include <QApplication>
 #include <QDir>
@@ -64,6 +65,7 @@ int main(int argc, char *argv[])
     qputenv("XDG_CONFIG_HOME", configHome.path().toLocal8Bit());
     QApplication app(argc, argv);
     QApplication::setFont(QFont(QStringLiteral("Noto Sans CJK KR"), 9));
+    theme::applyLightPalette();
     g_out = argc > 1 ? QString::fromLocal8Bit(argv[1]) : QStringLiteral("docs/screenshots");
     QDir().mkpath(g_out);
 
@@ -71,7 +73,7 @@ int main(int argc, char *argv[])
     config.set(QStringLiteral("general"), QStringLiteral("check_updates"), false);
     Controller ctl(config);
     editor::EditorWindow *ed = ctl.editor();
-    ed->resize(1100, 700);
+    ed->resize(1240, 700);
     ed->show();
     ed->showBackstage(QStringLiteral("start"));
     save(ed, QStringLiteral("start"));

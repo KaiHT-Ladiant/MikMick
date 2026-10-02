@@ -1,6 +1,6 @@
 # Maintainer: Kai_HT <157885033+KaiHT-Ladiant@users.noreply.github.com>
 pkgname=mikmick
-pkgver=0.2.0
+pkgver=0.2.1
 pkgrel=1
 pkgdesc="All-in-one screen capture, image editor and graphic tools (PicPick-like)"
 arch=('x86_64' 'aarch64')

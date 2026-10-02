@@ -11,10 +11,13 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPen>
+#include <QScrollArea>
 #include <QSizePolicy>
 #include <QStackedWidget>
 #include <QTabBar>
 #include <QVBoxLayout>
+
+#include <algorithm>
 
 namespace mm::editor {
 
@@ -70,7 +73,7 @@ void RibbonButton::init(const QString &text, const QIcon &icon, bool large, QMen
     if (large) {
         setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
         setIconSize(QSize(30, 30));
-        setMinimumWidth(menu && !checkable ? 60 : 44);
+        m_minWidth = menu && !checkable ? 60 : 44;
         setFixedHeight(66);
     } else {
         setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -81,6 +84,25 @@ void RibbonButton::init(const QString &text, const QIcon &icon, bool large, QMen
         setMenu(menu);
         setPopupMode(checkable ? QToolButton::MenuButtonPopup : QToolButton::InstantPopup);
     }
+}
+
+// The style sheet's menu-button / arrow is not fully accounted for by QToolButton::sizeHint, so
+// with larger desktop fonts (e.g. Cantarell 11) the label under the icon got elided.
+QSize RibbonButton::sizeHint() const
+{
+    QSize size = QToolButton::sizeHint();
+    if (toolButtonStyle() == Qt::ToolButtonTextUnderIcon) {
+        int width = fontMetrics().horizontalAdvance(text()) + 12;
+        if (menu())
+            width += 12;
+        size.setWidth(std::max({size.width(), width, m_minWidth}));
+    }
+    return size;
+}
+
+QSize RibbonButton::minimumSizeHint() const
+{
+    return sizeHint();
 }
 
 // ---------------------------------------------------------------- RibbonGroup
@@ -285,7 +307,19 @@ Ribbon::Ribbon()
     bodyLayout->setContentsMargins(0, 0, 0, 0);
     m_stack = new QStackedWidget();
     m_stack->setFixedHeight(92);
-    bodyLayout->addWidget(m_stack, 1);
+    // Pages wider than the window are clipped on the right: a plain layout would instead squeeze
+    // the buttons below their minimum size and elide the labels, or force the window wider.
+    m_scroll = new QScrollArea();
+    m_scroll->setWidget(m_stack);
+    m_scroll->setWidgetResizable(true);
+    m_scroll->setFrameShape(QFrame::NoFrame);
+    m_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_scroll->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+    m_scroll->setFixedHeight(92);
+    m_scroll->viewport()->setAutoFillBackground(false);
+    m_stack->setAutoFillBackground(false);
+    bodyLayout->addWidget(m_scroll, 1);
     m_collapseBtn = new QToolButton();
     m_collapseBtn->setText(QStringLiteral("︿"));
     m_collapseBtn->setToolTip(QStringLiteral("리본 축소/확장"));
@@ -331,10 +365,15 @@ void Ribbon::onTab(int index)
         toggleCollapsed();
 }
 
+int Ribbon::preferredWidth() const
+{
+    return m_stack->minimumSizeHint().width() + m_collapseBtn->sizeHint().width();
+}
+
 void Ribbon::toggleCollapsed()
 {
     m_collapsed = !m_collapsed;
-    m_stack->setVisible(!m_collapsed);
+    m_scroll->setVisible(!m_collapsed);
     m_collapseBtn->setText(m_collapsed ? QStringLiteral("﹀") : QStringLiteral("︿"));
 }
 
